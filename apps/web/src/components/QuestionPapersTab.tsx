@@ -16,12 +16,14 @@ import {
   ArrowRight,
   FolderOpen,
   Download,
-  Printer
+  Printer,
+  Camera
 } from "lucide-react";
 import { QuestionPaperMetadata, QPTemplate } from "../utils/db";
 import QuestionPaperBuilder from "./QuestionPaperBuilder";
 import QuestionBankTab from "./QuestionBankTab";
 import TemplatesTab from "./TemplatesTab";
+import CameraCaptureModal from "./CameraCaptureModal";
 
 interface QuestionPapersTabProps {
   papers: QuestionPaperMetadata[];
@@ -48,6 +50,7 @@ export default function QuestionPapersTab({
 }: QuestionPapersTabProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
 
   // Sub-tabs management
   const [internalSubTab, setInternalSubTab] = useState("directory");
@@ -184,6 +187,14 @@ export default function QuestionPapersTab({
               </button>
 
               <button
+                onClick={() => setIsCameraOpen(true)}
+                className="flex items-center space-x-1.5 rounded-xl border border-indigo-500/30 bg-indigo-600/15 hover:bg-indigo-600/30 px-3.5 py-2.5 text-xs font-bold text-indigo-300 hover:text-white transition cursor-pointer"
+              >
+                <Camera className="h-4 w-4 text-indigo-400" />
+                <span>Use Camera</span>
+              </button>
+
+              <button
                 onClick={() => {
                   setBuilderInitialData(undefined);
                   setActiveSubTab("builder");
@@ -195,6 +206,17 @@ export default function QuestionPapersTab({
               </button>
             </div>
           </div>
+
+          <CameraCaptureModal
+            isOpen={isCameraOpen}
+            onClose={() => setIsCameraOpen(false)}
+            onCapture={(capturedFile) => {
+              setError(null);
+              onUpload(capturedFile);
+            }}
+            title="Scan Question Paper"
+            subtitle="Capture master printed question sheet to add to your course library."
+          />
 
           {error && (
             <div className="flex items-center space-x-2 rounded-xl bg-red-500/10 border border-red-500/20 p-3 text-xs text-red-400">

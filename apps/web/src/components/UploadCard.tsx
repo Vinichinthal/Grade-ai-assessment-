@@ -11,8 +11,9 @@ import {
   AlertCircle, 
   RefreshCw,
   Eye,
-  FileCheck
+  Camera
 } from "lucide-react";
+import CameraCaptureModal from "./CameraCaptureModal";
 
 interface UploadCardProps {
   title: string;
@@ -22,6 +23,7 @@ interface UploadCardProps {
   acceptTypes?: string;
   maxSizeMB?: number;
   badge?: string;
+  allowCamera?: boolean;
   onPreview?: () => void;
 }
 
@@ -33,10 +35,12 @@ export default function UploadCard({
   acceptTypes = ".pdf,image/*",
   maxSizeMB = 25,
   badge = "Step 1",
+  allowCamera = true,
   onPreview
 }: UploadCardProps) {
   const [isDragActive, setIsDragActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDrag = (e: React.DragEvent) => {
@@ -208,6 +212,16 @@ export default function UploadCard({
                 <RefreshCw className="h-3 w-3 text-slate-500" />
                 <span>Replace File</span>
               </button>
+              {allowCamera && (
+                <button
+                  type="button"
+                  onClick={() => setIsCameraOpen(true)}
+                  className="flex items-center space-x-1.5 rounded-xl border border-indigo-500/30 bg-indigo-600/15 hover:bg-indigo-600/30 hover:border-indigo-500/50 px-3 py-1.5 text-xs font-semibold text-indigo-300 hover:text-white transition shadow-2xs cursor-pointer"
+                >
+                  <Camera className="h-3.5 w-3.5 text-indigo-400" />
+                  <span>Retake Camera</span>
+                </button>
+              )}
               <button
                 type="button"
                 onClick={clearFile}
@@ -228,9 +242,36 @@ export default function UploadCard({
             <p className="text-xs font-bold text-slate-300">
               Drag & drop file or <span className="text-indigo-400 underline decoration-indigo-350 underline-offset-2 hover:text-indigo-300">browse</span>
             </p>
-            <p className="text-[11px] text-slate-500 mt-1.5">
+            <p className="text-[11px] text-slate-500 mt-1">
               Supports PDF, PNG, JPG or JPEG (Max {maxSizeMB}MB)
             </p>
+
+            {allowCamera && (
+              <div className="mt-3 flex items-center justify-center space-x-2">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    triggerFileInput();
+                  }}
+                  className="flex items-center space-x-1.5 rounded-xl border border-slate-800 bg-[#0E1322] hover:bg-slate-800 hover:text-white px-3 py-1.5 text-xs font-semibold text-slate-300 transition shadow-2xs cursor-pointer"
+                >
+                  <Upload className="h-3 w-3 text-slate-400" />
+                  <span>Browse File</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsCameraOpen(true);
+                  }}
+                  className="flex items-center space-x-1.5 rounded-xl border border-indigo-500/40 bg-indigo-600/20 hover:bg-indigo-600/35 hover:border-indigo-500/60 px-3 py-1.5 text-xs font-semibold text-indigo-300 hover:text-white transition shadow-2xs cursor-pointer group"
+                >
+                  <Camera className="h-3.5 w-3.5 text-indigo-400 group-hover:scale-110 transition-transform" />
+                  <span>Use Camera</span>
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -249,6 +290,21 @@ export default function UploadCard({
           <AlertCircle className="h-3.5 w-3.5 shrink-0" />
           <span>{error}</span>
         </div>
+      )}
+
+      {/* Camera Capture Modal */}
+      {allowCamera && (
+        <CameraCaptureModal
+          isOpen={isCameraOpen}
+          onClose={() => setIsCameraOpen(false)}
+          onCapture={(capturedFile) => {
+            if (validateFile(capturedFile)) {
+              onFileChange(capturedFile);
+            }
+          }}
+          title={`Capture ${title}`}
+          subtitle={`Position your ${title.toLowerCase()} inside the frame and take a snapshot.`}
+        />
       )}
     </div>
   );
